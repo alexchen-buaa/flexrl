@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flexrl"
+version = "0.0.1"
+authors = [{name="Tianyuan Chen", email="975106676@qq.com"}]
+description = "Non-modular implementation of common RL algorithms"
+readme = "README.md"
+requires-python = ">=3.8.13"
