@@ -23,8 +23,8 @@ from flexrl.algorithms import PPO
 
 args = {
     "exp_name": "test",
-	"gym_id": "CartPole-v1",
-	"total_timesteps": 20000,
+    "gym_id": "CartPole-v1",
+    "total_timesteps": 20000,
 }
 
 PPO(args)
