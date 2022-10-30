@@ -8,4 +8,7 @@ version = "0.0.1"
 authors = [{name="Tianyuan Chen", email="975106676@qq.com"}]
 description = "Non-modular implementation of common RL algorithms"
 readme = "README.md"
-requires-python = ">=3.8.13"
+requires-python = ">=3.8, <4"
+
+[project.urls]
+"Homepage" = "https://github.com/alexchen-buaa/flexrl"

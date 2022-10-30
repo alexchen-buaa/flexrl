@@ -30,6 +30,7 @@ BASE_ARGS = {
 DEFAULT_ARGS = {
     "ppo": BASE_ARGS,
     "ppo_multidiscrete": BASE_ARGS,
+    "ppo_atari": BASE_ARGS,
     "ppo_sil": BASE_ARGS.update(
         {
             "buffer_size": int(1e6),  # The size of the replay buffer
