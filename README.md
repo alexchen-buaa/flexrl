@@ -1,6 +1,6 @@
 # FlexRL
 
-FlexRL is a fork of [CleanRL](https://github.com/vwxyzjn/cleanrl) that offers a bit more flexibility while still being non-modular. FlexRL introduces the following features:
+FlexRL is a Deep Reinforcement Learning library inspired and adapted from [CleanRL](https://github.com/vwxyzjn/cleanrl) that offers a bit more flexibility while still being non-modular. FlexRL introduces the following features:
 - Notebook-friendly interface
 - A few custom environments
 
