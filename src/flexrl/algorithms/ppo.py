@@ -79,7 +79,7 @@ def PPO(_args):
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
     # Env setup
-    if args.async_envs: 
+    if args.async_envs:
         envs = gym.vector.AsyncVectorEnv(
             [make_env(args.gym_id, args.seed + i, i, run_name) for i in range(args.num_envs)]
         )
@@ -244,3 +244,4 @@ def PPO(_args):
 
     envs.close()
     writer.close()
+    return agent

@@ -243,3 +243,4 @@ def PPO_Atari(_args):
 
     envs.close()
     writer.close()
+    return agent

@@ -27,7 +27,7 @@ args = {
     "total_timesteps": 20000,
 }
 
-PPO(args)
+agent = PPO(args)
 ```
 
 ### Atari Support

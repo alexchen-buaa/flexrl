@@ -248,3 +248,4 @@ def PPO_MultiDiscrete(_args):
 
     envs.close()
     writer.close()
+    return agent
