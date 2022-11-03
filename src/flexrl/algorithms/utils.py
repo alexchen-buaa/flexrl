@@ -27,20 +27,27 @@ BASE_ARGS = {
     "async_envs": False, # (NEW) Use AsyncVectorEnv wrapper
 }
 
-DEFAULT_ARGS = {
-    "ppo": BASE_ARGS,
-    "ppo_multidiscrete": BASE_ARGS,
-    "ppo_atari": BASE_ARGS,
-    "ppo_sil": BASE_ARGS.update(
-        {
-            "buffer_size": int(1e6),  # The size of the replay buffer
-        }
-    ),
+UPDATE_ARGS = {
+    "ppo": {},
+    "ppo_multidiscrete": {},
+    "ppo_atari": {},
+    "dqn_atari": {
+        "learning_rate": 1e-4,
+        "buffer_size": int(1e6),
+        "target_network_frequency": 1000,
+        "batch_size": 32,
+        "start_e": 1,
+        "end_e": 0.01,
+        "exploration_fraction": 0.10,
+        "learning_starts": 80000,
+        "train_frequency": 4,
+    }
 }
 
 
 def update_args(_args, algorithm="ppo"):
-    args = DEFAULT_ARGS[algorithm]
+    args = BASE_ARGS
+    args.update(UPDATE_ARGS[algorithm])
     args.update(_args)  # Update args
     args = argparse.Namespace(**args)  # Convert to argparse.Namespace
     args.batch_size = int(args.num_envs * args.num_steps)
