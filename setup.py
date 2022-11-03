@@ -1,7 +1,7 @@
 from setuptools import setup
 
 requires = [
-    "torch==1.7.1",
+    "torch>=1.7.1",
     "stable-baselines3==1.1.0",
     "tensorboard==2.5.0",
     "opencv-python==4.6.0.66",
