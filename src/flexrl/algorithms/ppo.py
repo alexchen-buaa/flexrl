@@ -138,7 +138,7 @@ def PPO(_args):
             # Logging
             for item in info:
                 if "episode" in item.keys():
-                    # print(f"global_step={global_step}, episodic_return={item['episode']['r']}")
+                    print(f"global_step={global_step}, episodic_return={item['episode']['r']}")
                     writer.add_scalar("charts/episodic_return", item["episode"]["r"], global_step)
                     writer.add_scalar("charts/episodic_length", item["episode"]["l"], global_step)
                     break
