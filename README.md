@@ -4,7 +4,7 @@ FlexRL is a Deep Reinforcement Learning library inspired and adapted from [Clean
 - Notebook-friendly interface
 - A few custom environments
 
-> **NOTE**: This repo is mainly for research and educational purposes. For now we only have PPO and we may gradually include more algorithms and custom environments.
+> **NOTE**: This repo is mainly for research and educational purposes. For now we only have PPO/DQN and we may gradually include more algorithms and custom environments.
 
 ## Quick Start
 

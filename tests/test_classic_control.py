@@ -1,4 +1,4 @@
-from flexrl.algorithms import PPO
+from flexrl.algorithms import PPO, DQN
 
 args = {
     "exp_name": "test_classic_control",
@@ -8,3 +8,5 @@ args = {
 
 print("Testing PPO...")
 PPO(args)
+print("Testing DQN...")
+DQN(args)

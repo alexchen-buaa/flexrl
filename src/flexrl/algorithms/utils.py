@@ -10,27 +10,69 @@ BASE_ARGS = {
     "total_timesteps": 25000,  # Total timesteps of the experiment
     "torch_deterministic": True,  # If toggled, `torch.backends.cudnn.deterministic=False`
     "cuda": True,  # If toggled, cuda will be enabled by default
-    "num_envs": 4,  # The number of parallel game environments
-    "num_steps": 128,  # The number of steps to run in each environment per policy rollout
-    "anneal_lr": True,  # Toggle learning rate annealing for policy and value networks
-    "gae": True,  # Use GAE for advantage computation
     "gamma": 0.99,  # The discount factor gamma
-    "gae_lambda": 0.95,  # The lambda for the general advantage estimation
-    "num_minibatches": 4,  # The number of mini-batches
-    "update_epochs": 4,  # The K epochs to update the policy
-    "norm_adv": True,  # Toggles advantage normalization
-    "clip_coef": 0.2,  # The surrogate clipping coefficient
-    "ent_coef": 0.01,  # Coefficient of the entropy
-    "vf_coef": 0.5,  # Coefficient of the value function
-    "max_grad_norm": 0.5,  # The maximum norm for the gradient clipping
-    "target_kl": None,  # The target KL divergence threshold
-    "async_envs": False,  # (NEW) Use AsyncVectorEnv wrapper
 }
 
 UPDATE_ARGS = {
-    "ppo": {},
-    "ppo_multidiscrete": {},
-    "ppo_atari": {},
+    "ppo": {
+        "num_envs": 4,
+        "num_steps": 128,
+        "anneal_lr": True,
+        "gae": True,
+        "gae_lambda": 0.95,
+        "num_minibatches": 4,
+        "update_epochs": 4,
+        "norm_adv": True,
+        "clip_coef": 0.2,
+        "ent_coef": 0.01,
+        "vf_coef": 0.5,
+        "max_grad_norm": 0.5,
+        "target_kl": None,
+        "async_envs": False,
+    },
+    "ppo_multidiscrete": {
+        "num_envs": 4,
+        "num_steps": 128,
+        "anneal_lr": True,
+        "gae": True,
+        "gae_lambda": 0.95,
+        "num_minibatches": 4,
+        "update_epochs": 4,
+        "norm_adv": True,
+        "clip_coef": 0.2,
+        "ent_coef": 0.01,
+        "vf_coef": 0.5,
+        "max_grad_norm": 0.5,
+        "target_kl": None,
+        "async_envs": False,
+    },
+    "ppo_atari": {
+        "num_envs": 4,
+        "num_steps": 128,
+        "anneal_lr": True,
+        "gae": True,
+        "gae_lambda": 0.95,
+        "num_minibatches": 4,
+        "update_epochs": 4,
+        "norm_adv": True,
+        "clip_coef": 0.2,
+        "ent_coef": 0.01,
+        "vf_coef": 0.5,
+        "max_grad_norm": 0.5,
+        "target_kl": None,
+        "async_envs": False,
+    },
+    "dqn": {
+        "learning_rate": 2.5e-4,
+        "buffer_size": int(1e5),
+        "target_network_frequency": 500,
+        "batch_size": 128,
+        "start_e": 1,
+        "end_e": 0.05,
+        "exploration_fraction": 0.5,
+        "learning_starts": 10000,
+        "train_frequency": 10,
+    },
     "dqn_atari": {
         "learning_rate": 1e-4,
         "buffer_size": int(1e6),
@@ -41,7 +83,7 @@ UPDATE_ARGS = {
         "exploration_fraction": 0.10,
         "learning_starts": 80000,
         "train_frequency": 4,
-    }
+    },
 }
 
 
