@@ -24,13 +24,24 @@ BASE_ARGS = {
     "vf_coef": 0.5,  # Coefficient of the value function
     "max_grad_norm": 0.5,  # The maximum norm for the gradient clipping
     "target_kl": None,  # The target KL divergence threshold
-    "async_envs": False, # (NEW) Use AsyncVectorEnv wrapper
+    "async_envs": False,  # (NEW) Use AsyncVectorEnv wrapper
 }
 
 UPDATE_ARGS = {
     "ppo": {},
     "ppo_multidiscrete": {},
     "ppo_atari": {},
+    "dqn_atari": {
+        "learning_rate": 1e-4,
+        "buffer_size": int(1e6),
+        "target_network_frequency": 1000,
+        "batch_size": 32,
+        "start_e": 1,
+        "end_e": 0.01,
+        "exploration_fraction": 0.10,
+        "learning_starts": 80000,
+        "train_frequency": 4,
+    }
 }
 
 
