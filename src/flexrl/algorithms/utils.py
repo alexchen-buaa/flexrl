@@ -24,7 +24,7 @@ BASE_ARGS = {
     "vf_coef": 0.5,  # Coefficient of the value function
     "max_grad_norm": 0.5,  # The maximum norm for the gradient clipping
     "target_kl": None,  # The target KL divergence threshold
-    "async_envs": False, # (NEW) Use AsyncVectorEnv wrapper
+    "async_envs": False,  # (NEW) Use AsyncVectorEnv wrapper
 }
 
 UPDATE_ARGS = {

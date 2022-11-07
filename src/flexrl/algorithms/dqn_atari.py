@@ -129,10 +129,9 @@ def DQN_Atari(_args):
 
         # Save data to reply buffer; handle `terminal_observation`
         real_next_obs = next_obs.copy()
-        # TODO: don't know why this cause KeyError bug
-        # for idx, d in enumerate(dones):
-            # if d:
-                # real_next_obs[idx] = infos[idx]["terminal_observation"]
+        for idx, d in enumerate(dones):
+            if d:
+                real_next_obs[idx] = infos[idx]["terminal_observation"]
         rb.add(obs, real_next_obs, actions, rewards, dones, infos)
 
         # CRUCIAL step easy to overlook
