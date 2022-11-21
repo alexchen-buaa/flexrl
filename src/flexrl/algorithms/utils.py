@@ -84,6 +84,30 @@ UPDATE_ARGS = {
         "learning_starts": 80000,
         "train_frequency": 4,
     },
+    "qr_dqn": {
+        "learning_rate": 2.5e-4,
+        "buffer_size": int(1e5),
+        "target_network_frequency": 500,
+        "batch_size": 128,
+        "start_e": 1,
+        "end_e": 0.05,
+        "exploration_fraction": 0.5,
+        "learning_starts": 10000,
+        "train_frequency": 10,
+        "num_quants": 32,
+    },
+    "qr_dqn_atari": {
+        "learning_rate": 1e-4,
+        "buffer_size": int(1e6),
+        "target_network_frequency": 1000,
+        "batch_size": 32,
+        "start_e": 1,
+        "end_e": 0.01,
+        "exploration_fraction": 0.10,
+        "learning_starts": 80000,
+        "train_frequency": 4,
+        "num_quants": 200,
+    },
 }
 
 
@@ -92,6 +116,7 @@ def update_args(_args, algorithm="ppo"):
     args.update(UPDATE_ARGS[algorithm])
     args.update(_args)  # Update args
     args = argparse.Namespace(**args)  # Convert to argparse.Namespace
-    args.batch_size = int(args.num_envs * args.num_steps)
-    args.minibatch_size = int(args.batch_size // args.num_minibatches)
+    if not hasattr(args, "batch_size"): # Infer batch_size
+        args.batch_size = int(args.num_envs * args.num_steps)
+        args.minibatch_size = int(args.batch_size // args.num_minibatches)
     return args
