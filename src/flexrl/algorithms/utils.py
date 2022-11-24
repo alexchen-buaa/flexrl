@@ -111,9 +111,12 @@ UPDATE_ARGS = {
 }
 
 
-def update_args(_args, algorithm="ppo"):
+def update_args(_args, algorithm="ppo", custom_args=None):
     args = BASE_ARGS
-    args.update(UPDATE_ARGS[algorithm])
+    if custom_args:  # For custom algorithms
+        args.update(custom_args)
+    else:
+        args.update(UPDATE_ARGS[algorithm])
     args.update(_args)  # Update args
     args = argparse.Namespace(**args)  # Convert to argparse.Namespace
     if not hasattr(args, "batch_size"): # Infer batch_size
