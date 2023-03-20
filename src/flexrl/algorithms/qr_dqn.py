@@ -1,8 +1,11 @@
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from dataclasses import dataclass
 import random
 import time
 
 import gym
 import numpy as np
+import pyrallis
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -10,7 +13,31 @@ import torch.optim as optim
 from stable_baselines3.common.buffers import ReplayBuffer
 from torch.utils.tensorboard import SummaryWriter
 
-from flexrl.algorithms.utils import update_args
+
+@dataclass
+class TrainArgs:
+    # Experiment
+    exp_name: str = "qr_dqn"
+    gym_id: str = "CartPole-v1"
+    learning_rate: float = 2.5e-4
+    seed: int = 1
+    total_timesteps: int = 25000
+    torch_deterministic: bool = True
+    cuda: bool = True
+    gamma: float = 0.99
+    # QR_DQN
+    buffer_size: int = int(1e5)
+    target_network_frequency: int = 500
+    batch_size: int = 128
+    start_e: float = 1.0
+    end_e: float = 0.05
+    exploration_fraction: float = 0.5
+    learning_starts: int = 10000
+    train_frequency: int = 10
+    num_quants: int = 32
+    
+    def __post_init__(self):
+        self.exp_name = f"{self.exp_name}__{self.gym_id}"
 
 
 def make_env(env_id, seed, idx, run_name):
@@ -47,11 +74,11 @@ def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
     return max(slope * t + start_e, end_e)
 
 
-def QR_DQN(_args):
+if __name__ == "__main__":
     # Logging setup
-    args = update_args(_args, algorithm="qr_dqn")
+    args = pyrallis.parse(config_class=TrainArgs)
     print(vars(args))
-    run_name = f"{args.gym_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
+    run_name = f"{args.exp_name}__{args.seed}__{int(time.time())}"
     writer = SummaryWriter(f"runs/{run_name}")
     writer.add_text(
         "hyperparameters",
@@ -158,4 +185,3 @@ def QR_DQN(_args):
 
     envs.close()
     writer.close()
-    return q_network

@@ -1,8 +1,11 @@
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from dataclasses import dataclass
 import random
 import time
 
 import gym
 import numpy as np
+import pyrallis
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -17,7 +20,30 @@ from stable_baselines3.common.atari_wrappers import (
 from stable_baselines3.common.buffers import ReplayBuffer
 from torch.utils.tensorboard import SummaryWriter
 
-from flexrl.algorithms.utils import update_args
+
+@dataclass
+class TrainArgs:
+    # Experiment
+    exp_name: str = "dqn_atari"
+    gym_id: str = "PongNoFrameskip-v4"
+    learning_rate: float = 1e-4
+    seed: int = 1
+    total_timesteps: int = 25000
+    torch_deterministic: bool = True
+    cuda: bool = True
+    gamma: float = 0.99
+    # DQN_Atari
+    buffer_size: int = int(1e6)
+    target_network_frequency: int = 1000
+    batch_size: int = 32
+    start_e: float = 1.0
+    end_e: float = 0.01
+    exploration_fraction: float = 0.10
+    learning_starts: int = 80000
+    train_frequency: int = 4
+    
+    def __post_init__(self):
+        self.exp_name = f"{self.exp_name}__{self.gym_id}"
 
 
 def make_env(env_id, seed, idx, run_name):
@@ -64,11 +90,11 @@ def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
     return max(slope * t + start_e, end_e)
 
 
-def DQN_Atari(_args):
+if __name__ == "__main__":
     # Logging setup
-    args = update_args(_args, algorithm="dqn_atari")
+    args = pyrallis.parse(config_class=TrainArgs)
     print(vars(args))
-    run_name = f"{args.gym_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
+    run_name = f"{args.exp_name}__{args.seed}__{int(time.time())}"
     writer = SummaryWriter(f"runs/{run_name}")
     writer.add_text(
         "hyperparameters",
@@ -163,4 +189,3 @@ def DQN_Atari(_args):
 
     envs.close()
     writer.close()
-    return q_network

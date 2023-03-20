@@ -1,20 +1,53 @@
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from dataclasses import dataclass
 import random
 import time
 
 import gym
 import numpy as np
+import pyrallis
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.distributions.categorical import Categorical
 from torch.utils.tensorboard import SummaryWriter
 
-from flexrl.algorithms.utils import update_args
+
+@dataclass
+class TrainArgs:
+    # Experiment
+    exp_name: str = "ppo"
+    gym_id: str = "CartPole-v1"
+    learning_rate: float = 2.5e-4
+    seed: int = 1
+    total_timesteps: int = 25000
+    torch_deterministic: bool = True
+    cuda: bool = True
+    gamma: float = 0.99
+    # PPO
+    num_envs: int = 4
+    num_steps: int = 128
+    anneal_lr: bool = True
+    gae: bool = True
+    gae_lambda: float = 0.95
+    num_minibatches: int = 4
+    update_epochs: int = 4
+    norm_adv: bool = True
+    clip_coef: float = 0.2
+    ent_coef: float = 0.01
+    vf_coef: float = 0.5
+    max_grad_norm: float = 0.5
+    target_kl: Optional[float] = None
+    async_envs: bool = False
+    
+    def __post_init__(self):
+        self.exp_name = f"{self.exp_name}__{self.gym_id}"
+        self.batch_size = int(self.num_envs * self.num_steps)
+        self.minibatch_size = int(self.batch_size // self.num_minibatches)
 
 
 def make_env(gym_id, seed, idx, run_name):
     def thunk():
-        # import armkit.envs
         env = gym.make(gym_id)
         env = gym.wrappers.RecordEpisodeStatistics(env)
         env.seed(seed)
@@ -59,11 +92,11 @@ class Agent(nn.Module):
         return action, probs.log_prob(action), probs.entropy(), self.critic(x)
 
 
-def PPO(_args):
+if __name__ == "__main__":
     # Logging setup
-    args = update_args(_args, algorithm="ppo")
+    args = pyrallis.parse(config_class=TrainArgs)
     print(vars(args))
-    run_name = f"{args.gym_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
+    run_name = f"{args.exp_name}__{args.seed}__{int(time.time())}"
     writer = SummaryWriter(f"runs/{run_name}")
     writer.add_text(
         "hyperparameters",
@@ -244,4 +277,3 @@ def PPO(_args):
 
     envs.close()
     writer.close()
-    return agent

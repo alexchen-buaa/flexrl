@@ -8,6 +8,8 @@ requires = [
     "gym[classic_control, box2d]==0.23.1",
     "ale-py==0.7.4",
     "protobuf==3.19.4",
+    "pyrallis==0.3.1",
+    "pytest==7.2.2",
 ]
 
 setup(

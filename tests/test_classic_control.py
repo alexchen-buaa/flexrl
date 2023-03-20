@@ -1,15 +1,25 @@
-from flexrl.algorithms import PPO, DQN, QR_DQN
+import subprocess
 
-args = {
-    "exp_name": "test_classic_control",
-    "gym_id": "CartPole-v1",
-    "total_timesteps": 512,
-    "learning_starts": 256,
-}
 
-print("Testing PPO...")
-PPO(args)
-print("Testing DQN...")
-DQN(args)
-print("Testing QR_DQN...")
-QR_DQN(args)
+def test_ppo():
+    subprocess.run(
+        "python src/flexrl/algorithms/ppo.py --num_envs 1 --num_steps 64 --total_timesteps 256",
+        shell=True,
+        check=True,
+    )
+
+
+def test_dqn():
+    subprocess.run(
+        "python src/flexrl/algorithms/dqn.py --learning_starts 200 --total_timesteps 205",
+        shell=True,
+        check=True,
+    )
+
+
+def test_qr_dqn():
+    subprocess.run(
+        "python src/flexrl/algorithms/qr_dqn.py --learning_starts 200 --total_timesteps 205",
+        shell=True,
+        check=True,
+    )
