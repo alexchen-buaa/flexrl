@@ -1,10 +1,9 @@
 # FlexRL
 
-FlexRL is a Deep Reinforcement Learning library inspired and adapted from [CleanRL](https://github.com/vwxyzjn/cleanrl) that offers a bit more flexibility while still being non-modular. FlexRL introduces the following features:
-- Notebook-friendly interface
-- A few custom environments
-
-> **NOTE**: This repo is mainly for research and educational purposes. For now we only have PPO/DQN and we may gradually include more algorithms and custom environments.
+FlexRL is a deep online/offline reinforcement learning library inspired and adapted from [CleanRL](https://github.com/vwxyzjn/cleanrl) and [CORL](https://github.com/tinkoff-ai/CORL) that provides single-file implementations of algorithms that aren't necessarily covered by these libraries. FlexRL introduces the following features:
+- Consistent style across online and offline algorithms
+- Easy configuration with [Pyrallis](https://github.com/eladrich/pyrallis) and progress bar
+- A few custom environments under `gym` API
 
 ## Quick Start
 
@@ -18,16 +17,9 @@ pip install -e .
 
 ### Usage
 
-```python
-from flexrl.algorithms import PPO
-
-args = {
-    "exp_name": "test",
-    "gym_id": "CartPole-v1",
-    "total_timesteps": 20000,
-}
-
-agent = PPO(args)
+Run the algorithms as individual scripts. Like CORL, we use [Pyrallis](https://github.com/eladrich/pyrallis) for configuration management. The arguments can be specified using command-line arguments, a `yaml` file, or both:
+```bash
+python ppo.py --config_path=some_config.yaml
 ```
 
 ### Atari Support

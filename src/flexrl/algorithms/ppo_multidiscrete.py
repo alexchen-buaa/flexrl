@@ -1,3 +1,5 @@
+# source: https://github.com/vwxyzjn/cleanrl
+
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass
 import random
@@ -6,6 +8,7 @@ import time
 import gym
 import numpy as np
 import pyrallis
+from tqdm import tqdm
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -18,13 +21,13 @@ class TrainArgs:
     # Experiment
     exp_name: str = "ppo_multidiscrete"
     gym_id: str = "CartPole-v1"
-    learning_rate: float = 2.5e-4
     seed: int = 1
-    total_timesteps: int = 25000
     torch_deterministic: bool = True
     cuda: bool = True
-    gamma: float = 0.99
     # PPO_MultiDiscrete
+    total_timesteps: int = 25000
+    gamma: float = 0.99
+    learning_rate: float = 2.5e-4
     num_envs: int = 4
     num_steps: int = 128
     anneal_lr: bool = True
@@ -39,7 +42,7 @@ class TrainArgs:
     max_grad_norm: float = 0.5
     target_kl: Optional[float] = None
     async_envs: bool = False
-    
+
     def __post_init__(self):
         self.exp_name = f"{self.exp_name}__{self.gym_id}"
         self.batch_size = int(self.num_envs * self.num_steps)
@@ -148,7 +151,7 @@ if __name__ == "__main__":
     # args.batch_size = int(args.num_envs * args.num_steps)
     num_updates = args.total_timesteps // args.batch_size
 
-    for update in range(1, num_updates + 1):
+    for update in tqdm(range(1, num_updates + 1), desc="Training", unit="step", unit_scale=args.batch_size):
         # Annealing the rate if instructed to do so
         if args.anneal_lr:
             frac = 1.0 - (update - 1.0) / num_updates
@@ -277,7 +280,7 @@ if __name__ == "__main__":
         writer.add_scalar("losses/old_approx_kl", old_approx_kl.item(), global_step)
         writer.add_scalar("losses/clipfrac", np.mean(clipfracs), global_step)
         writer.add_scalar("losses/explained_variance", explained_var, global_step)
-        print("SPS:", int(global_step / (time.time() - start_time)))  # Steps per second
+        # print("SPS:", int(global_step / (time.time() - start_time)))  # Steps per second
         writer.add_scalar("charts/SPS", int(global_step / (time.time() - start_time)), global_step)
 
     envs.close()

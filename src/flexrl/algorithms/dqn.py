@@ -1,3 +1,5 @@
+# source: https://github.com/vwxyzjn/cleanrl
+
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass
 import random
@@ -6,6 +8,7 @@ import time
 import gym
 import numpy as np
 import pyrallis
+from tqdm import tqdm
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -19,13 +22,13 @@ class TrainArgs:
     # Experiment
     exp_name: str = "dqn"
     gym_id: str = "CartPole-v1"
-    learning_rate: float = 2.5e-4
     seed: int = 1
-    total_timesteps: int = 25000
     torch_deterministic: bool = True
     cuda: bool = True
-    gamma: float = 0.99
     # DQN
+    total_timesteps: int = 25000
+    gamma: float = 0.99
+    learning_rate: float = 2.5e-4
     buffer_size: int = int(1e5)
     target_network_frequency: int = 500
     batch_size: int = 128
@@ -34,7 +37,7 @@ class TrainArgs:
     exploration_fraction: float = 0.5
     learning_starts: int = 10000
     train_frequency: int = 10
-    
+
     def __post_init__(self):
         self.exp_name = f"{self.exp_name}__{self.gym_id}"
 
@@ -111,7 +114,7 @@ if __name__ == "__main__":
 
     # Main loop
     obs = envs.reset()
-    for global_step in range(args.total_timesteps):
+    for global_step in tqdm(range(args.total_timesteps), desc="Training", unit="step"):
         # Action logic
         epsilon = linear_schedule(args.start_e, args.end_e, args.exploration_fraction * args.total_timesteps, global_step)
         if random.random() < epsilon:
@@ -126,13 +129,13 @@ if __name__ == "__main__":
         # Logging
         for info in infos:
             if "episode" in info.keys():
-                print(f"global_step={global_step}, episodic_return={info['episode']['r']}")
+                # print(f"global_step={global_step}, episodic_return={info['episode']['r']}")
                 writer.add_scalar("charts/episodic_return", info["episode"]["r"], global_step)
                 writer.add_scalar("charts/episodic_length", info["episode"]["l"], global_step)
                 writer.add_scalar("charts/epsilon", epsilon, global_step)
                 break
 
-        # Save data to reply buffer; handle `terminal_observation`
+        # Save data to replay buffer; handle `terminal_observation`
         real_next_obs = next_obs.copy()
         for idx, d in enumerate(dones):
             if d:
@@ -154,7 +157,7 @@ if __name__ == "__main__":
             if global_step % 100 == 0:
                 writer.add_scalar("losses/td_loss", loss, global_step)
                 writer.add_scalar("losses/q_values", old_val.mean().item(), global_step)
-                print("SPS:", int(global_step / (time.time() - start_time)))
+                # print("SPS:", int(global_step / (time.time() - start_time)))
                 writer.add_scalar("charts/SPS", int(global_step / (time.time() - start_time)), global_step)
 
             # Optimize the model
