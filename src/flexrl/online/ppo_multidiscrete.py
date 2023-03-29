@@ -24,6 +24,7 @@ class TrainArgs:
     seed: int = 1
     torch_deterministic: bool = True
     cuda: bool = True
+    log_dir: str = "runs"
     # PPO_MultiDiscrete
     total_timesteps: int = 25000
     gamma: float = 0.99
@@ -49,7 +50,7 @@ class TrainArgs:
         self.minibatch_size = int(self.batch_size // self.num_minibatches)
 
 
-def make_env(gym_id, seed, idx, run_name):
+def make_env(gym_id, seed):
     def thunk():
         # import armkit.envs
         env = gym.make(gym_id)
@@ -105,7 +106,7 @@ if __name__ == "__main__":
     args = pyrallis.parse(config_class=TrainArgs)
     print(vars(args))
     run_name = f"{args.exp_name}__{args.seed}__{int(time.time())}"
-    writer = SummaryWriter(f"runs/{run_name}")
+    writer = SummaryWriter(f"{args.log_dir}/{run_name}")
     writer.add_text(
         "hyperparameters",
         "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
@@ -122,11 +123,11 @@ if __name__ == "__main__":
     # Env setup
     if args.async_envs:
         envs = gym.vector.AsyncVectorEnv(
-            [make_env(args.gym_id, args.seed + i, i, run_name) for i in range(args.num_envs)]
+            [make_env(args.gym_id, args.seed + i) for i in range(args.num_envs)]
         )
     else:
         envs = gym.vector.SyncVectorEnv(
-            [make_env(args.gym_id, args.seed + i, i, run_name) for i in range(args.num_envs)]
+            [make_env(args.gym_id, args.seed + i) for i in range(args.num_envs)]
         )
     assert isinstance(envs.single_action_space, gym.spaces.MultiDiscrete), "only MultiDiscrete action space is supported"
 

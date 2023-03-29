@@ -25,6 +25,7 @@ class TrainArgs:
     seed: int = 1
     torch_deterministic: bool = True
     cuda: bool = True
+    log_dir: str = "runs"
     # SAC
     total_timesteps: int = 1000000
     gamma: float = 0.99
@@ -45,7 +46,7 @@ class TrainArgs:
         self.exp_name = f"{self.exp_name}__{self.gym_id}"
 
 
-def make_env(env_id, seed, idx, run_name):
+def make_env(env_id, seed):
     def thunk():
         env = gym.make(env_id)
         env = gym.wrappers.RecordEpisodeStatistics(env)
@@ -82,12 +83,12 @@ class Actor(nn.Module):
         self.fc2 = nn.Linear(256, 256)
         self.fc_mean = nn.Linear(256, np.prod(env.single_action_space.shape))
         self.fc_logstd = nn.Linear(256, np.prod(env.single_action_space.shape))
-        # action rescaling
+        # Action rescaling
         self.register_buffer(
             "action_scale", torch.tensor((env.action_space.high - env.action_space.low) / 2.0, dtype=torch.float32)
         )
         self.register_buffer(
-            "action_bias", torch.tensor((env.action_space.high - env.action_space.low) / 2.0, dtype=torch.float32)
+            "action_bias", torch.tensor((env.action_space.high + env.action_space.low) / 2.0, dtype=torch.float32)
         )
 
     def forward(self, x):
@@ -120,7 +121,7 @@ if __name__ == "__main__":
     args = pyrallis.parse(config_class=TrainArgs)
     print(vars(args))
     run_name = f"{args.exp_name}__{args.seed}__{int(time.time())}"
-    writer = SummaryWriter(f"runs/{run_name}")
+    writer = SummaryWriter(f"{args.log_dir}/{run_name}")
     writer.add_text(
         "hyperparameters",
         "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
@@ -135,7 +136,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
     # Env setup
-    envs = gym.vector.SyncVectorEnv([make_env(args.gym_id, args.seed, 0, run_name)])
+    envs = gym.vector.SyncVectorEnv([make_env(args.gym_id, args.seed)])
     assert isinstance(envs.single_action_space, gym.spaces.Box), "only continuous action space is supported"
 
     max_action = float(envs.single_action_space.high[0])

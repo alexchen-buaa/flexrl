@@ -26,6 +26,7 @@ class TrainArgs:
     seed: int = 1
     torch_deterministic: bool = True
     cuda: bool = True
+    log_dir: str = "runs"
     # QR_DQN
     total_timesteps: int = 25000
     gamma: float = 0.99
@@ -44,7 +45,7 @@ class TrainArgs:
         self.exp_name = f"{self.exp_name}__{self.gym_id}"
 
 
-def make_env(env_id, seed, idx, run_name):
+def make_env(env_id, seed):
     def thunk():
         env = gym.make(env_id)
         env = gym.wrappers.RecordEpisodeStatistics(env)
@@ -83,7 +84,7 @@ if __name__ == "__main__":
     args = pyrallis.parse(config_class=TrainArgs)
     print(vars(args))
     run_name = f"{args.exp_name}__{args.seed}__{int(time.time())}"
-    writer = SummaryWriter(f"runs/{run_name}")
+    writer = SummaryWriter(f"{args.log_dir}/{run_name}")
     writer.add_text(
         "hyperparameters",
         "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
@@ -98,7 +99,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
     # Env setup
-    envs = gym.vector.SyncVectorEnv([make_env(args.gym_id, args.seed, 0, run_name)])
+    envs = gym.vector.SyncVectorEnv([make_env(args.gym_id, args.seed)])
     assert isinstance(envs.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
 
     # Model/agent setup

@@ -12,6 +12,7 @@ requires = [
     "protobuf==3.19.4",
     "pyrallis==0.3.1",
     "pytest==7.2.2",
+    "d4rl @ git+https://github.com/alexchen-buaa/d4rl.git",
 ]
 
 setup(

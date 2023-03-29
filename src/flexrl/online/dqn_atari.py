@@ -1,5 +1,4 @@
-# source: https://github.com/DLR-RM/stable-baselines3
-# https://arxiv.org/abs/1710.10044
+# source: https://github.com/vwxyzjn/cleanrl
 
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass
@@ -28,12 +27,13 @@ from torch.utils.tensorboard import SummaryWriter
 @dataclass
 class TrainArgs:
     # Experiment
-    exp_name: str = "qr_dqn_atari"
+    exp_name: str = "dqn_atari"
     gym_id: str = "PongNoFrameskip-v4"
     seed: int = 1
     torch_deterministic: bool = True
     cuda: bool = True
-    # QR_DQN_Atari
+    log_dir: str = "runs"
+    # DQN_Atari
     total_timesteps: int = 25000
     gamma: float = 0.99
     learning_rate: float = 1e-4
@@ -45,13 +45,12 @@ class TrainArgs:
     exploration_fraction: float = 0.10
     learning_starts: int = 80000
     train_frequency: int = 4
-    num_quants: int = 200
 
     def __post_init__(self):
         self.exp_name = f"{self.exp_name}__{self.gym_id}"
 
 
-def make_env(env_id, seed, idx, run_name):
+def make_env(env_id, seed):
     def thunk():
         env = gym.make(env_id)
         env = gym.wrappers.RecordEpisodeStatistics(env)
@@ -70,12 +69,9 @@ def make_env(env_id, seed, idx, run_name):
         return env
     return thunk
 
-
 class QNetwork(nn.Module):
-    def __init__(self, env, num_quants):
+    def __init__(self, env):
         super().__init__()
-        self.num_actions = env.single_action_space.n
-        self.num_quants = num_quants
         self.network = nn.Sequential(
             nn.Conv2d(4, 32, 8, stride=4),
             nn.ReLU(),
@@ -86,12 +82,11 @@ class QNetwork(nn.Module):
             nn.Flatten(),
             nn.Linear(3136, 512),
             nn.ReLU(),
-            nn.Linear(512, self.num_actions * self.num_quants),
+            nn.Linear(512, env.single_action_space.n),
         )
 
     def forward(self, x):
-        batch_size = x.size(0)
-        return self.network(x / 255.0).view(batch_size, self.num_actions, self.num_quants)
+        return self.network(x / 255.0)
 
 
 def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
@@ -104,7 +99,7 @@ if __name__ == "__main__":
     args = pyrallis.parse(config_class=TrainArgs)
     print(vars(args))
     run_name = f"{args.exp_name}__{args.seed}__{int(time.time())}"
-    writer = SummaryWriter(f"runs/{run_name}")
+    writer = SummaryWriter(f"{args.log_dir}/{run_name}")
     writer.add_text(
         "hyperparameters",
         "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
@@ -119,13 +114,13 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
     # Env setup
-    envs = gym.vector.SyncVectorEnv([make_env(args.gym_id, args.seed, 0, run_name)])
+    envs = gym.vector.SyncVectorEnv([make_env(args.gym_id, args.seed)])
     assert isinstance(envs.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
 
     # Model/agent setup
-    q_network = QNetwork(envs, args.num_quants).to(device)
+    q_network = QNetwork(envs).to(device)
     optimizer = optim.Adam(q_network.parameters(), lr=args.learning_rate)
-    target_network = QNetwork(envs, args.num_quants).to(device)
+    target_network = QNetwork(envs).to(device)
     target_network.load_state_dict(q_network.state_dict())
 
     # Storage setup
@@ -147,8 +142,7 @@ if __name__ == "__main__":
         if random.random() < epsilon:
             actions = np.array([envs.single_action_space.sample() for _ in range(envs.num_envs)])
         else:
-            # Take mean across quantiles to get q_values
-            q_values = q_network(torch.Tensor(obs).to(device)).mean(dim=2)
+            q_values = q_network(torch.Tensor(obs).to(device))
             actions = torch.argmax(q_values, dim=1).cpu().numpy()
 
         # Step the environment
@@ -173,26 +167,14 @@ if __name__ == "__main__":
         # CRUCIAL step easy to overlook
         obs = next_obs
 
-        # Training
+        # Training.
         if global_step > args.learning_starts and global_step % args.train_frequency == 0:
             data = rb.sample(args.batch_size)
-            # Perform quantile regression
             with torch.no_grad():
-                target = target_network(data.next_observations)  # Raw quantiles
-                actions_max = target.mean(dim=2, keepdim=True).argmax(dim=1, keepdim=True)
-                actions_max = actions_max.expand(args.batch_size, 1, args.num_quants)
-                target_max = target.gather(1, actions_max).squeeze(dim=1)
-                td_target = data.rewards + args.gamma * target_max * (1 - data.dones)
-                td_target = td_target.unsqueeze(1)  # (batch_size, 1, num_quants)
-            actions = data.actions[..., None].long().expand(args.batch_size, 1, args.num_quants)
-            old_val = q_network(data.observations).gather(1, actions).squeeze(dim=1)
-            old_val = old_val.unsqueeze(2)  # (batch_size, num_quants, 1)
-            # Quantile Huber loss
-            u = td_target - old_val  # (batch_size, num_quants, num_quants)
-            tau = ((torch.arange(args.num_quants, device=old_val.device, dtype=torch.float) + 0.5) / args.num_quants).view(1, -1, 1)
-            weight = torch.abs(tau - u.le(0.).float())
-            loss = F.smooth_l1_loss(old_val, td_target, reduction="none")
-            loss = (weight * loss).mean()
+                target_max, _ = target_network(data.next_observations).max(dim=1)
+                td_target = data.rewards.flatten() + args.gamma * target_max * (1 - data.dones.flatten())
+            old_val = q_network(data.observations).gather(1, data.actions).squeeze()
+            loss = F.mse_loss(td_target, old_val)
 
             if global_step % 100 == 0:
                 writer.add_scalar("losses/td_loss", loss, global_step)
