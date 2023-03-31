@@ -204,7 +204,8 @@ if __name__ == "__main__":
     q_optimizer = optim.Adam(list(qf1.parameters()) + list(qf2.parameters()), lr=args.critic_lr)
 
     # Dataset setup
-    dataset = Dataset(env, device)
+    dataset = Dataset(device)
+    dataset.load(env)
     start_time = time.time()
 
     # Main loop
