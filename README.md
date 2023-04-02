@@ -35,6 +35,7 @@ python ppo.py --config_path=some_config.yaml
 |          |                                    | [qr_dqn_atari.py](src/flexrl/online/qr_dqn_atari.py)           |
 |          | Soft Actor-Critic (SAC)            | [sac.py](src/flexrl/online/sac.py)                             |
 | Offline  | Implicit Q-Learning (IQL)          | [iql.py](src/flexrl/offline/iql.py)                            |
+|          | In-Sample Actor-Critic (InAC)      | [inac.py](src/flexrl/offline/inac.py)                          |
 
 ### Extra Requirements
 
@@ -56,3 +57,4 @@ To use MuJoCo envs (for both online training and offline evaluation), you need t
 - [2] Antonin Raffin, Ashley Hill, Adam Gleave, Anssi Kanervisto, Maximilian Ernestus, and Noah Dormann, “Stable-Baselines3: Reliable Reinforcement Learning Implementations,” Journal of Machine Learning Research, vol. 22, no. 268, pp. 1–8, 2021.
 - [3] W. Dabney, M. Rowland, M. G. Bellemare, and R. Munos, “Distributional Reinforcement Learning with Quantile Regression,” arXiv:1710.10044 [cs, stat], Oct. 2017, Accessed: Apr. 15, 2022. [Online]. Available: http://arxiv.org/abs/1710.10044
 - [4] I. Kostrikov, A. Nair, and S. Levine, “Offline Reinforcement Learning with Implicit Q-Learning.” arXiv, Oct. 12, 2021. Accessed: Mar. 29, 2023. [Online]. Available: http://arxiv.org/abs/2110.06169
+- [5] C. Xiao, H. Wang, Y. Pan, A. White, and M. White, “The In-Sample Softmax for Offline Reinforcement Learning.” arXiv, Feb. 28, 2023. Accessed: Apr. 02, 2023. [Online]. Available: http://arxiv.org/abs/2302.14372

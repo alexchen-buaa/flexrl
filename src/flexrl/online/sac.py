@@ -32,7 +32,7 @@ class TrainArgs:
     policy_lr: float = 3e-4
     q_lr: float = 1e-3
     buffer_size: int = int(1e6)
-    tau: float = 0.005
+    polyak: float = 0.005
     batch_size: int = 256
     exploration_noise: float = 0.1
     learning_starts: int = int(5e3)
@@ -244,9 +244,9 @@ if __name__ == "__main__":
             # Update the target networks
             if global_step % args.target_network_frequency == 0:
                 for param, target_param in zip(qf1.parameters(), qf1_target.parameters()):
-                    target_param.data.copy_(args.tau * param.data + (1 - args.tau) * target_param.data)
+                    target_param.data.copy_(args.polyak * param.data + (1 - args.polyak) * target_param.data)
                 for param, target_param in zip(qf2.parameters(), qf2_target.parameters()):
-                    target_param.data.copy_(args.tau * param.data + (1 - args.tau) * target_param.data)
+                    target_param.data.copy_(args.polyak * param.data + (1 - args.polyak) * target_param.data)
 
             # Logging
             if global_step % 100 == 0:
