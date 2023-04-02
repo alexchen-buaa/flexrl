@@ -276,6 +276,9 @@ if __name__ == "__main__":
             actor.train()
             for k, v in stats.items():
                 writer.add_scalar(f"charts/episodic_{k}", np.mean(v), global_step)
+                if k == "return":
+                    normalized_score = env.get_normalized_score(np.mean(v)) * 100
+                    writer.add_scalar("charts/normalized_score", normalized_score, global_step)
             writer.flush()
         
         # Logging
