@@ -40,7 +40,7 @@ class TrainArgs:
     eval_freq: int = int(5e3)
     eval_episodes: int = 10
     log_freq: int = 1000
-    
+
     def __post_init__(self):
         self.exp_name = f"{self.exp_name}__{self.gym_id}"
 
@@ -67,7 +67,7 @@ class ValueNetwork(nn.Module):
         self.fc1 = layer_init(nn.Linear(np.array(env.observation_space.shape).prod(), 256))
         self.fc2 = layer_init(nn.Linear(256, 256))
         self.fc3 = layer_init(nn.Linear(256, 1))
-    
+
     def forward(self, x):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
@@ -81,7 +81,7 @@ class CriticNetwork(nn.Module):
         self.fc1 = layer_init(nn.Linear(np.array(env.observation_space.shape).prod() + np.prod(env.action_space.shape), 256))
         self.fc2 = layer_init(nn.Linear(256, 256))
         self.fc3 = layer_init(nn.Linear(256, 1))
-    
+
     def forward(self, x, a):
         x = torch.cat([x, a], 1)
         x = F.relu(self.fc1(x))
@@ -103,7 +103,7 @@ class Actor(nn.Module):
         self.fc_mean = layer_init(nn.Linear(256, np.prod(env.action_space.shape)))
         self.log_std = nn.Parameter(torch.zeros(np.prod(env.action_space.shape), dtype=torch.float32))
         self.register_buffer("max_action", torch.tensor(env.action_space.high, dtype=torch.float32))
-    
+
     def forward(self, x):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
@@ -111,7 +111,7 @@ class Actor(nn.Module):
         log_std = self.log_std
         log_std = torch.clamp(log_std, LOG_STD_MIN, LOG_STD_MAX)
         return mean, log_std
-    
+
     def get_action(self, x):
         mean, log_std = self(x)
         std = log_std.exp()
@@ -131,32 +131,30 @@ class Batch(NamedTuple):
 
 
 class Dataset:
-    def __init__(self, env, device, eps=1e-5):
+    def __init__(self, device):
+        self.device = device
+        self.size = None
+        self.observations = None
+        self.actions = None
+        self.rewards = None
+        self.masks = None
+        self.next_observations = None
+
+    def load(self, env, eps=1e-5):
+        self.env = env
         dataset = d4rl.qlearning_dataset(env)
-        # Clip to eps = 1e-5
-        lim = 1 - eps
+        lim = 1 - eps # Clip to eps
         dataset["actions"] = np.clip(dataset["actions"], -lim, lim)
-        dones_float = np.zeros_like(dataset["rewards"])
-        for i in range(len(dones_float) - 1):
-            if np.linalg.norm(dataset['observations'][i + 1] -
-                              dataset['next_observations'][i]
-                              ) > 1e-6 or dataset['terminals'][i] == 1.0:
-                dones_float[i] = 1
-            else:
-                dones_float[i] = 0
-        dones_float[-1] = 1
+        self.size = len(dataset["observations"])
         self.observations = dataset["observations"].astype(np.float32)
         self.actions = dataset["actions"].astype(np.float32)
         self.rewards = dataset["rewards"].astype(np.float32)
         self.masks = 1.0 - dataset["terminals"].astype(np.float32)
-        self.dones_float = dones_float.astype(np.float32)
         self.next_observations = dataset["next_observations"].astype(np.float32)
-        self.size = len(dataset["observations"])
-        self.device = device
-    
+
     def to_torch(self, array):
         return torch.tensor(array, device=self.device)
-    
+
     def sample(self, batch_size):
         idx = np.random.randint(self.size, size=batch_size)
         data = (
@@ -167,7 +165,7 @@ class Dataset:
             self.next_observations[idx],
         )
         return Batch(*tuple(map(self.to_torch, data)))
-        
+
 
 if __name__ == "__main__":
     # Logging setup
@@ -179,19 +177,19 @@ if __name__ == "__main__":
         "hyperparameters",
         "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
     )
-    
+
     # Seeding
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     torch.backends.cudnn.deterministic = args.torch_deterministic
-    
+
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
-    
+
     # Eval env setup
     env = make_env(args.gym_id, args.seed)()
     assert isinstance(env.action_space, gym.spaces.Box), "only continuous action space is supported"
-    
+
     # Agent setup
     actor = Actor(env).to(device)
     vf = ValueNetwork(env).to(device)
@@ -204,30 +202,31 @@ if __name__ == "__main__":
     actor_optimizer = optim.Adam(list(actor.parameters()), lr=args.actor_lr)
     v_optimizer = optim.Adam(list(vf.parameters()), lr=args.value_lr)
     q_optimizer = optim.Adam(list(qf1.parameters()) + list(qf2.parameters()), lr=args.critic_lr)
-    
+
     # Dataset setup
-    dataset = Dataset(env, device)
+    dataset = Dataset(device)
+    dataset.load(env)
     start_time = time.time()
-    
+
     # Main loop
     for global_step in tqdm(range(args.total_iterations), desc="Training", unit="iter"):
         batch = dataset.sample(batch_size=args.batch_size)
-        
+
         with torch.no_grad():
             q1_target = qf1_target(batch.observations, batch.actions)
             q2_target = qf2_target(batch.observations, batch.actions)
             q_target = torch.minimum(q1_target, q2_target)
-        
+
         # Value update
         old_val = vf(batch.observations)
         u = q_target - old_val
         weight = torch.abs(args.expectile - u.le(0.).float())
         vf_loss = (weight * (u**2)).mean()
-        
+
         v_optimizer.zero_grad()
         vf_loss.backward()
         v_optimizer.step()
-        
+
         # Policy update (advantage weighted regression)
         new_val = vf(batch.observations)
         adv = (q_target - new_val).detach()
@@ -235,11 +234,11 @@ if __name__ == "__main__":
         _, dist = actor.get_action(batch.observations)
         log_probs = dist.log_prob(batch.actions).reshape(-1, 1)
         actor_loss = -(exp_adv * log_probs).mean()
-        
+
         actor_optimizer.zero_grad()
         actor_loss.backward()
         actor_optimizer.step()
-        
+
         # Critic update
         with torch.no_grad():
             next_new_val = vf(batch.next_observations).view(-1)
@@ -249,17 +248,17 @@ if __name__ == "__main__":
         qf1_loss = F.mse_loss(q1, td_target)
         qf2_loss = F.mse_loss(q2, td_target)
         qf_loss = qf1_loss + qf2_loss
-        
+
         q_optimizer.zero_grad()
         qf_loss.backward()
         q_optimizer.step()
-        
+
         # Target network update
         for param, target_param in zip(qf1.parameters(), qf1_target.parameters()):
             target_param.data.copy_(args.tau * param.data + (1 - args.tau) * target_param.data)
         for param, target_param in zip(qf2.parameters(), qf2_target.parameters()):
             target_param.data.copy_(args.tau * param.data + (1 - args.tau) * target_param.data)
-        
+
         # Evaluation
         if global_step % args.eval_freq == 0:
             env.seed(args.seed)
@@ -280,7 +279,7 @@ if __name__ == "__main__":
                     normalized_score = env.get_normalized_score(np.mean(v)) * 100
                     writer.add_scalar("charts/normalized_score", normalized_score, global_step)
             writer.flush()
-        
+
         # Logging
         if global_step % args.log_freq == 0:
             writer.add_scalar("losses/v", old_val.mean().item(), global_step)
@@ -292,6 +291,6 @@ if __name__ == "__main__":
             writer.add_scalar("losses/actor_loss", actor_loss.item(), global_step)
             writer.add_scalar("charts/SPS", int(global_step / (time.time() - start_time)), global_step)
             writer.flush()
-    
+
     env.close()
     writer.close()
