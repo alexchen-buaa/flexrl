@@ -21,7 +21,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 -------------------------------------------------------------------------------- 
-Code in `flexrl/src/algorithms/ppo` and `flexrl/src/algorithms/ppo_multidiscrete` are adapted from https://github.com/vwxyzjn/cleanrl
+Code in `flexrl/src/online/ppo.py`, `flexrl/src/online/ppo_multidiscrete.py`,
+`flexrl/src/online/ppo_atari.py`, `flexrl/src/online/dqn.py`,
+`flexrl/src/online/dqn_atari.py`, `flexrl/src/online/sac.py`,
+are adapted from https://github.com/vwxyzjn/cleanrl
 
 MIT License
 

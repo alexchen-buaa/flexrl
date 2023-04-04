@@ -2,7 +2,7 @@
 
 FlexRL is a deep online/offline reinforcement learning library inspired and adapted from [CleanRL](https://github.com/vwxyzjn/cleanrl) and [CORL](https://github.com/tinkoff-ai/CORL) that provides single-file implementations of algorithms that aren't necessarily covered by these libraries. FlexRL introduces the following features:
 - Consistent style across online and offline algorithms
-- Easy configuration with [Pyrallis](https://github.com/eladrich/pyrallis) and progress bar
+- Easy configuration with [Pyrallis](https://github.com/eladrich/pyrallis) and [tqdm](https://github.com/tqdm/tqdm) progress bar
 - A few custom environments under `gym` API
 
 ## Quick Start
@@ -35,6 +35,7 @@ python ppo.py --config_path=some_config.yaml
 |          |                                    | [qr_dqn_atari.py](src/flexrl/online/qr_dqn_atari.py)           |
 |          | Soft Actor-Critic (SAC)            | [sac.py](src/flexrl/online/sac.py)                             |
 | Offline  | Implicit Q-Learning (IQL)          | [iql.py](src/flexrl/offline/iql.py)                            |
+|          |                                    | [iql_jax.py](src/flexrl/offline/iql_jax.py)                    |
 |          | In-Sample Actor-Critic (InAC)      | [inac.py](src/flexrl/offline/inac.py)                          |
 
 ### Extra Requirements
@@ -50,6 +51,10 @@ ale-import-roms roms/
 #### MuJoCo
 
 To use MuJoCo envs (for both online training and offline evaluation), you need to install MuJoCo first. See [mujoco-py](https://github.com/openai/mujoco-py) for instructions.
+
+#### JAX with CUDA Support
+
+To use JAX with CUDA support, you need to install the NVIDIA driver first. See [JAX Installation](https://github.com/google/jax#installation) for instructions.
 
 ### References
 

@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.distributions.categorical import Categorical
-from torch.utils.tensorboard import SummaryWriter
+from tensorboardX import SummaryWriter
 
 from stable_baselines3.common.atari_wrappers import (  # isort:skip
     ClipRewardEnv,
