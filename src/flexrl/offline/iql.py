@@ -114,6 +114,7 @@ class Actor(nn.Module):
 
     def get_action(self, x):
         mean, log_std = self(x)
+        mean = torch.tanh(mean)
         std = log_std.exp()
         scale_tril = torch.diag(std)
         dist = torch.distributions.MultivariateNormal(mean, scale_tril=scale_tril)

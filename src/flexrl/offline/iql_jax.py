@@ -109,6 +109,7 @@ class Actor(nn.Module):
         x = nn.Dense(256, kernel_init=layer_init())(x)
         x = nn.relu(x)
         mean = nn.Dense(self.action_dim, kernel_init=layer_init())(x)
+        mean = nn.tanh(mean)
         log_std = self.param("log_std", nn.initializers.zeros, (self.action_dim, ))
         log_std = jnp.clip(log_std, LOG_STD_MIN, LOG_STD_MAX)
         dist = tfd.MultivariateNormalDiag(loc=mean, scale_diag=jnp.exp(log_std) * temperature)
