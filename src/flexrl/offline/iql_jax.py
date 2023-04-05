@@ -144,8 +144,8 @@ class Dataset:
         self.size = len(dataset["observations"])
         self.observations = dataset["observations"].astype(np.float32)
         self.actions = dataset["actions"].astype(np.float32)
-        self.rewards = dataset["rewards"].astype(np.float32)
-        self.masks = 1.0 - dataset["terminals"].astype(np.float32)
+        self.rewards = dataset["rewards"].astype(np.float32)[:, None]
+        self.masks = 1.0 - dataset["terminals"].astype(np.float32)[:, None]
         self.next_observations = dataset["next_observations"].astype(np.float32)
 
     def sample(self, batch_size):
