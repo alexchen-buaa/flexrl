@@ -238,7 +238,7 @@ if __name__ == "__main__":
         
         def actor_loss_fn(params):
             dist = actor.apply(params, batch.observations)
-            log_probs = dist.log_prob(batch.actions)
+            log_probs = dist.log_prob(batch.actions).reshape((-1, 1))
             actor_loss = -(exp_adv * log_probs).mean()
             return actor_loss, {
                 "actor_loss": actor_loss,
