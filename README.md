@@ -37,6 +37,7 @@ python ppo.py --config_path=some_config.yaml
 | Offline  | Implicit Q-Learning (IQL)          | [iql.py](src/flexrl/offline/iql.py)                            |
 |          |                                    | [iql_jax.py](src/flexrl/offline/iql_jax.py)                    |
 |          | In-Sample Actor-Critic (InAC)      | [inac.py](src/flexrl/offline/inac.py)                          |
+|          |                                    | [inac_jax.py](src/flexrl/offline/inac_jax.py)                  |
 
 ### Extra Requirements
 
