@@ -38,6 +38,7 @@ python ppo.py --config_path=some_config.yaml
 |          |                                    | [iql_jax.py](src/flexrl/offline/iql_jax.py)                    |
 |          | In-Sample Actor-Critic (InAC)      | [inac.py](src/flexrl/offline/inac.py)                          |
 |          |                                    | [inac_jax.py](src/flexrl/offline/inac_jax.py)                  |
+|          | Soft Actor-Critic Ensemble (SAC-N) | [sac_n_jax.py](src/flexrl/offline/sac_n_jax.py)                |
 
 ### Extra Requirements
 

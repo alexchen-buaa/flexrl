@@ -31,7 +31,7 @@ class TrainArgs:
     gym_id: str = "halfcheetah-medium-expert-v2"
     seed: int = 1
     log_dir: str = "runs"
-    # IQL
+    # InAC
     total_iterations: int = int(1e6)
     gamma: float = 0.99
     learning_rate: float = 3e-4

@@ -27,7 +27,7 @@ class TrainArgs:
     torch_deterministic: bool = True
     cuda: bool = True
     log_dir: str = "runs"
-    # IQL
+    # InAC
     total_iterations: int = int(1e6)
     gamma: float = 0.99
     learning_rate: float = 3e-4
